@@ -1,0 +1,77 @@
+[
+    {
+        "name" : "init",
+        "args" : "",
+        "descr": "bind the current directory to one of your Cyberlearn course"
+    },
+    {
+        "name" : "pinit",
+        "args" : "",
+        "descr": "same as cybe init && cybe pull"
+    },
+    {
+        "name" : "init-global",
+        "args" : "",
+        "descr": "store your credentials once and for all"
+    },
+    {
+        "name" : "add-origin",
+        "args" : "url [urls]",
+        "descr": "add an url to the parsing process"
+    },
+    {
+        "name" : "rm-origin",
+        "args" : "url [urls]",
+        "descr": "remove an url from the parsing process"
+    },
+    {
+        "name" : "add-ctype",
+        "args" : "ctype [ctypes]",
+        "descr": "add a content-type to the list of valid resources"
+    },
+    {
+        "name" : "rm-ctype",
+        "args" : "ctype [ctypes]",
+        "descr": "remove a user-defined content-type. Note that this command"
+    },
+    {
+        "name" : "add-dir",
+        "args" : "path [paths]",
+        "descr": "mark the directory(-ies) as containing downloaded resources"
+    },
+    {
+        "name" : "rm-dir",
+        "args" : "path [paths]",
+        "descr": "remove the directory(-ies) "
+    },
+    {
+        "name" : "pull",
+        "args" : "",
+        "descr": "download the latest resources for the course bound "
+    },
+    {
+        "name" : "resync",
+        "args" : "",
+        "descr": "force a resync of the existing resources list. May be useful when the app bugged. Note that the whole list fileid <--> filename will be reset, so if some files were renamed, you need to manually edit the new .cybe file..."
+    },
+    {
+        "name" : "oneshot",
+        "args" : "url",
+        "descr": "parse the given url and download resources in the "
+    },
+    {
+        "name" : "help",
+        "args" : "",
+        "descr": "print a brief help message"
+    },
+    {
+        "name" : "man",
+        "args" : "",
+        "descr": "display the full documentation"
+    },
+    {
+        "name" : "dump",
+        "args" : "",
+        "descr": "display the content of the current local configuration"
+    }
+]

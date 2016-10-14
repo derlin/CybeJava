@@ -1,0 +1,17 @@
+package ch.derlin.cybe.lib.gson;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Annotation used to exclude fields from json serialisation
+ * @author: Lucy Linder
+ * @date: 23.06.2014
+ */
+@Retention( RetentionPolicy.RUNTIME )
+@Target( { ElementType.FIELD } )
+public @interface DoNotSerialize{
+    // Field tag only annotation
+}//end interface
