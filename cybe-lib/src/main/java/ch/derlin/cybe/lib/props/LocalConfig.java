@@ -39,7 +39,7 @@ public class LocalConfig implements Closeable{
     private transient String filepath;
 
     @DoNotSerialize
-    private transient boolean modified = true;
+    private transient boolean modified;
 
     //-------------------------------------------------------------
 
@@ -256,12 +256,14 @@ public class LocalConfig implements Closeable{
     /** @param course the course name */
     public void setCourse( String course ){
         this.course = course;
+        modified = true;
     }
 
 
     /** @param courseUrl the url of the course's homepage */
     public void setCourseUrl( String courseUrl ){
         this.courseUrl = courseUrl;
+        modified = true;
     }
 
 
