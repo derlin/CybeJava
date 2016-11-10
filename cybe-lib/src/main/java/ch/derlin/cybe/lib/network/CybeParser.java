@@ -1,7 +1,7 @@
 package ch.derlin.cybe.lib.network;
 
-import ch.derlin.cybe.lib.network.CybeConnector.HttpErrorHandler;
-import ch.derlin.cybe.lib.network.CybeConnector.ResourceConsumer;
+import ch.derlin.cybe.lib.network.Connector.HttpErrorHandler;
+import ch.derlin.cybe.lib.network.Connector.ResourceConsumer;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.entity.ContentType;
@@ -28,7 +28,7 @@ import static ch.derlin.cybe.lib.utils.CybeUtils.*;
 public class CybeParser {
 
     private ExecutorService pool = Executors.newWorkStealingPool();
-    private CybeConnector connector;
+    private Connector connector;
 
     private SuperSimpleLogger logger = SuperSimpleLogger.silentInstance();
     private HttpErrorHandler errorHandler;
@@ -39,7 +39,7 @@ public class CybeParser {
      *
      * @param connector the connector to use
      */
-    public CybeParser( CybeConnector connector ){
+    public CybeParser( Connector connector ){
         this.connector = connector;
         logger.setDebug( null );
     }
@@ -50,15 +50,14 @@ public class CybeParser {
      *
      * @param connector the connector to use
      */
-    public CybeParser( CybeConnector connector, SuperSimpleLogger logger ){
+    public CybeParser( Connector connector, SuperSimpleLogger logger ){
         this( connector );
         this.logger = logger;
     }
 
 
     /**
-     * see {@link #findCourseResources(String, CybeConnector.ResourceConsumer,
-     * CybeConnector.HttpErrorHandler)}    *
+     * see {@link #findCourseResources(String, ResourceConsumer, HttpErrorHandler)}    *
      */
     public List<Future<NameValuePair>> findCourseResources( String baseUrl,
                                                             ResourceConsumer consumer ) throws Exception{
@@ -140,18 +139,7 @@ public class CybeParser {
      *                   CybeConnector.HttpErrorHandler)}
      */
     public Map<String, String> getListOfCourses() throws Exception{
-
-        final Map<String, String> courses = new HashMap<>();
-
-        connector.getResource( connector.getHomeUrl(), ( ct, n, i ) -> {
-            String welcomePage = IOUtils.toString( i );
-            Document doc = Jsoup.parse( welcomePage );
-            doc.select( "li.type_course a[title]" ).forEach( ( a ) -> {
-                courses.put( a.attr( "title" ), a.attr( "href" ) );
-            } );
-        }, errorHandler );
-
-        return courses;
+        return connector.getListOfCourses();
     }//end getListOfCourses
 
 
@@ -236,7 +224,7 @@ public class CybeParser {
         // the starting url: can lead either to the resource or to an embedded viewer (or to nothing)
         String url;
         NameValuePair nameUrlPair; // the result
-        CybeConnector.ResourceConsumer consumer; // the consumer of the resource (callback)
+        ResourceConsumer consumer; // the consumer of the resource (callback)
 
 
         private CallableResourceFinder( String url, ResourceConsumer consumer ){

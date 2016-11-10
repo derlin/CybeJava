@@ -39,7 +39,7 @@ public class LocalConfig implements Closeable{
     private transient String filepath;
 
     @DoNotSerialize
-    private transient boolean modified;
+    private transient boolean modified = true;
 
     //-------------------------------------------------------------
 
@@ -303,7 +303,10 @@ public class LocalConfig implements Closeable{
      */
     public static LocalConfig loadInstance( String path ){
         LocalConfig config = ( LocalConfig ) GsonUtils.getJsonFromFile( path, new LocalConfig() );
-        if( config != null ) config.filepath = path;
+        if( config != null ){
+            config.filepath = path;
+            config.modified = false;
+        }
         return config;
     }//end loadInstance
 

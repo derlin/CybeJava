@@ -113,7 +113,7 @@ public class CybeUtils{
         String id = "";
         try{
             OS os = getOs();
-            if( os == OS.LINUX ){
+            if( os == OS.LINUX || os == OS.MAC ){
                 id = Files.readAttributes( Paths.get( filepath ), BasicFileAttributes.class ).fileKey()
                         .toString();
                 id = id.replaceAll( ".*,ino=", "" ).replace( ")", "" );

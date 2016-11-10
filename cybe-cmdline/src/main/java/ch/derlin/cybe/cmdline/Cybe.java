@@ -4,11 +4,11 @@ import ch.derlin.cybe.cmdline.parsing.CliFlag;
 import ch.derlin.cybe.cmdline.parsing.CliParser;
 import ch.derlin.cybe.cmdline.parsing.CliStringOption;
 import ch.derlin.cybe.lib.gson.GsonUtils;
-import ch.derlin.cybe.lib.network.CybeConnector;
+import ch.derlin.cybe.lib.network.Connector;
 import ch.derlin.cybe.lib.network.CybeParser;
+import ch.derlin.cybe.lib.network.MoodleConnector;
 import ch.derlin.cybe.lib.props.GlobalConfig;
 import ch.derlin.cybe.lib.props.LocalConfig;
-import ch.derlin.cybe.lib.props.PlatformLinks;
 import ch.derlin.cybe.lib.utils.CybeUtils;
 import ch.derlin.cybe.lib.utils.SuperSimpleLogger;
 import org.apache.commons.io.FileUtils;
@@ -28,8 +28,12 @@ import static ch.derlin.cybe.lib.utils.SuperSimpleLogger.*;
 /**
  * @author: Lucy Linder
  * @date: 19.06.2014
+ *
+ * Updated on november 2016 to work with moodle2
  */
 public class Cybe implements AutoCloseable{
+
+    private static final String HOME_URL = "https://moodle.msengineering.ch";
 
     private static final int EXIT_STATUS_ERROR = 1, EXIT_STATUS_OK = 0;
     private static final String LOCAL_CONF_NAME = ".cybe";
@@ -45,7 +49,7 @@ public class Cybe implements AutoCloseable{
     private boolean isLocalConfigLoaded;
 
     private Collection<String> existingResources;
-    private CybeConnector connector;
+    private Connector connector;
     private CybeParser parser;
     private CmdDoc doc;
     private SuperSimpleLogger logger =  // debug, info, warn, error
@@ -411,6 +415,7 @@ public class Cybe implements AutoCloseable{
             localConfig.setCourse( selectedCourse );
             localConfig.setCourseUrl( courses.get( selectedCourse ) );
             localConfig.save();
+            existingResources = new HashSet<>();
             isLocalConfigLoaded = true;
 
         }catch( Exception e ){
@@ -631,7 +636,7 @@ public class Cybe implements AutoCloseable{
 
         try{
             // TODO
-            connector = new CybeConnector( PlatformLinks.getInstance( platform ) );
+            connector = new MoodleConnector(HOME_URL);
             parser = new CybeParser( connector, logger );
             connector.connect( globalConfig );
         }catch( Exception e ){
