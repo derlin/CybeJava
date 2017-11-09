@@ -1,7 +1,9 @@
 package ch.derlin.cybe.lib.utils;
 
-import org.apache.commons.io.IOUtils;
 import ch.derlin.cybe.lib.win.WinUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,6 +12,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A bunch of useful  methods to deal with urls, files and such.
@@ -21,6 +25,7 @@ public class CybeUtils{
 
     public enum OS{LINUX, MAC, WINDOWS, SUN, OTHER}
 
+    private static Pattern FILENAME_IN_HEADER_PATTERN = Pattern.compile(".*filename=\"(.*)\".*");
 
     /**
      * Write the content of an {@link InputStream} into a file.
@@ -127,5 +132,23 @@ public class CybeUtils{
         return id;
     }//end getUniqueFileId
 
+
+    /**
+     * Extract the filename from an HTTP response fetching an attachment such as a zip file.
+     * @param response  the http response
+     * @return the filename attachment, or null if not specified in the headers.
+     */
+    public static String getNameFromAttachmentHeader( HttpResponse response ){
+
+        Header contentDispositionHeader = response.getFirstHeader( "Content-Disposition" );
+        if( contentDispositionHeader != null ){
+            String headerValue = contentDispositionHeader.getValue();
+            Matcher m = FILENAME_IN_HEADER_PATTERN.matcher( headerValue );
+            if( m.find() ){
+                return m.group( 1 );
+            }
+        }
+        return null;
+    }
 
 }//end class

@@ -162,6 +162,7 @@ public class CybeParser {
 
         res = href.matches( ".+((\\.pdf)|(resource)).*" ); // direct link or subpage with <object>
         res |= href.matches( ".+/mod/url.+" );  // link to a subpage with an iframe viewer
+        res |= href.matches( ".+/mod/folder.+" );  // link to a subpage with a folder view
 
         return res;
     }//end isLinkOfInterest
@@ -249,7 +250,7 @@ public class CybeParser {
                     // we have an html page => check for an embedded resource
                     // the viewers always have a div.resourceworkaround element
                     Document doc = Jsoup.parse( IOUtils.toString( in ) );
-                    Element link = doc.select( "div" + ".resourceworkaround a" ).first();
+                    Element link = doc.select( "div.resourceworkaround a" ).first();
                     String href = null;
 
                     if( link != null ){
@@ -263,9 +264,12 @@ public class CybeParser {
 
 
                     if( href != null ){
-                        //logger.debug.printf( "getting %s%n", href );
                         findResource( href );
-                    } // else: neither a resource, nor a "viewer". Nothing to do
+                    } else{
+                        // treat folders a bit differently.
+                        tryFindFolder( doc );
+                    }
+                    // else: neither a resource, nor a "viewer", nor a folder. Nothing to do
 
 
                 }else{  // we have a real resource (not html)
@@ -281,6 +285,26 @@ public class CybeParser {
 
         }
 
+        private void tryFindFolder( final Document doc ) throws Exception {
+            Element object = doc.select( "form[action$=download_folder.php]" ).first();
+            if(object != null) {
+                System.out.println( "Got a download folder !" );
+                List<NameValuePair> postData = new ArrayList<>();
+                for( Element input : object.select( "input[type=hidden]" ) ){
+                    postData.add( new BasicNameValuePair( input.attr( "name" ), input.attr( "value" ) ) );
+                }//end for
+                String action = object.attr( "action" );
+                connector.getPostResource(action, postData, (mimeType, name, in) -> {
+                    if( name == null || name.startsWith( "http" ) ){
+                        System.err.println( "Error getting folder: attachment name is null." );
+                    }else{
+                        consumer.accept( mimeType, name, in );
+                    }
+                }, errorHandler);
+
+            }
+        }
+
 
         private String parseSubpage( Document doc ){
             Element object;
@@ -293,9 +317,9 @@ public class CybeParser {
             object = doc.select( "iframe#resourceobject[src]" ).first();
             if( object != null ) return object.attr( "src" );
 
-
             return null;
         }//end parseObjectTag
+
     }
 
 }//end class

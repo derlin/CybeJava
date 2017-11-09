@@ -1,5 +1,6 @@
 package ch.derlin.cybe.lib.network;
 
+import ch.derlin.cybe.lib.utils.CybeUtils;
 import ch.derlin.cybe.lib.utils.SuperSimpleLogger;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
@@ -252,10 +253,10 @@ public abstract class Connector implements Closeable{
 
         }finally{
             get.releaseConnection();
-
         }
 
     }//end getResource
+
 
 
     /**
@@ -263,6 +264,44 @@ public abstract class Connector implements Closeable{
      */
     public void getResource( String url, ResourceConsumer consumer ) throws Exception{
         getResource( url, consumer, null );
+    }//end getResource
+
+    // TODO
+    public void getPostResource( String url, List<NameValuePair> postData, ResourceConsumer consumer, HttpErrorHandler errorHandler ) throws Exception{
+        BasicHttpContext context = new BasicHttpContext();
+        HttpPost post = new HttpPost( url );
+        post.setEntity( new UrlEncodedFormEntity( postData ) );
+
+        logger.error.printf( "%s %n", connectionManager.getTotalStats() );
+        try( CloseableHttpResponse response = httpclient.execute( post, context ) ){
+
+            if( response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ){
+                HttpEntity entity = response.getEntity();
+                // if there was an indirection, get the final url
+                RedirectLocations redirects = ( RedirectLocations ) context //
+                        .getAttribute( "http.protocol.redirect-locations" );
+
+                if( redirects != null ){
+                    url = redirects.get( redirects.size() - 1 ).toString();
+                    //url = ( ( HttpRequestWrapper ) context.getAttribute( "http.request" ) ).getURI().toString();
+                }
+
+                String mimeType = ContentType.getOrDefault( response.getEntity() ).getMimeType();
+                String attachmentName = CybeUtils.getNameFromAttachmentHeader( response );
+
+                consumer.accept( mimeType, //
+                        attachmentName == null ? url : attachmentName,  //
+                        entity.getContent() );
+                EntityUtils.consume( entity );
+
+            }else{
+                if( errorHandler != null ) errorHandler.handleError( url, response );
+            }
+
+        }finally{
+            post.releaseConnection();
+        }
+
     }//end getResource
 
     /* *****************************************************************
@@ -306,7 +345,6 @@ public abstract class Connector implements Closeable{
      * @throws Exception
      */
     protected HttpResponse doPost( String url, String... args ) throws Exception{
-        HttpPost post = new HttpPost( url );
         List<NameValuePair> postKeyValuePairs = new ArrayList<>();
         if( args.length % 2 != 0 ){
             return null; // todo
@@ -314,7 +352,12 @@ public abstract class Connector implements Closeable{
         for( int i = 0; i < args.length; i += 2 ){
             postKeyValuePairs.add( new BasicNameValuePair( args[ i ], args[ i + 1 ] ) );
         }//end for
-        post.setEntity( new UrlEncodedFormEntity( postKeyValuePairs ) );
+        return doPost( url, postKeyValuePairs );
+    }
+
+    protected HttpResponse doPost( String url, List<NameValuePair> postData ) throws Exception{
+        HttpPost post = new HttpPost( url );
+        post.setEntity( new UrlEncodedFormEntity( postData ) );
         return httpclient.execute( post );
     }
 
