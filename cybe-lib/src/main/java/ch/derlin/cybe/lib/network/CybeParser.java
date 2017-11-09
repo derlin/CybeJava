@@ -288,19 +288,18 @@ public class CybeParser {
         private void tryFindFolder( final Document doc ) throws Exception {
             Element object = doc.select( "form[action$=download_folder.php]" ).first();
             if(object != null) {
-                System.out.println( "Got a download folder !" );
                 List<NameValuePair> postData = new ArrayList<>();
                 for( Element input : object.select( "input[type=hidden]" ) ){
                     postData.add( new BasicNameValuePair( input.attr( "name" ), input.attr( "value" ) ) );
                 }//end for
                 String action = object.attr( "action" );
-                connector.getPostResource(action, postData, (mimeType, name, in) -> {
+                connector.postDownloadZip(action, postData, (mimeType, name, in) -> {
                     if( name == null || name.startsWith( "http" ) ){
                         System.err.println( "Error getting folder: attachment name is null." );
                     }else{
                         consumer.accept( mimeType, name, in );
                     }
-                }, errorHandler);
+                });
 
             }
         }

@@ -224,7 +224,7 @@ public abstract class Connector implements Closeable{
      * @param errorHandler the error handler
      * @throws Exception
      */
-    public void getResource( String url, ResourceConsumer consumer, HttpErrorHandler errorHandler ) throws Exception{
+    public void getResource( String url, ResourceConsumer consumer, HttpErrorHandler errorHandler ) throws Exception {
         BasicHttpContext context = new BasicHttpContext();
         HttpGet get = new HttpGet( url );
         logger.error.printf( "%s %n", connectionManager.getTotalStats() );
@@ -266,42 +266,26 @@ public abstract class Connector implements Closeable{
         getResource( url, consumer, null );
     }//end getResource
 
-    // TODO
-    public void getPostResource( String url, List<NameValuePair> postData, ResourceConsumer consumer, HttpErrorHandler errorHandler ) throws Exception{
-        BasicHttpContext context = new BasicHttpContext();
-        HttpPost post = new HttpPost( url );
-        post.setEntity( new UrlEncodedFormEntity( postData ) );
+    /**
+     * Get a zipped resource. On moodle, folder views have a form with some hidden input and a call to
+     * https://moodle.msengineering.ch/mod/folder/download_folder.php, hence the post stuff.
+     * @param url the url, for example https://moodle.msengineering.ch/mod/folder/download_folder.php
+     * @param postData the data from the form (mostly hidden inputs, like id and sesskey)
+     * @param consumer the consumer to call after download. Beware, the second argument of the callback is not
+     *                 the url (as usual), but the name of the file attachment (XXX.zip)
+     * @throws Exception
+     */
+    public void postDownloadZip( String url, List<NameValuePair> postData, ResourceConsumer consumer ) throws Exception {
+        HttpResponse response = doPost(url, postData);
+        HttpEntity entity = response.getEntity();
 
-        logger.error.printf( "%s %n", connectionManager.getTotalStats() );
-        try( CloseableHttpResponse response = httpclient.execute( post, context ) ){
+        String mimeType = ContentType.getOrDefault( response.getEntity() ).getMimeType();
+        String attachmentName = CybeUtils.getNameFromAttachmentHeader( response );
 
-            if( response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ){
-                HttpEntity entity = response.getEntity();
-                // if there was an indirection, get the final url
-                RedirectLocations redirects = ( RedirectLocations ) context //
-                        .getAttribute( "http.protocol.redirect-locations" );
-
-                if( redirects != null ){
-                    url = redirects.get( redirects.size() - 1 ).toString();
-                    //url = ( ( HttpRequestWrapper ) context.getAttribute( "http.request" ) ).getURI().toString();
-                }
-
-                String mimeType = ContentType.getOrDefault( response.getEntity() ).getMimeType();
-                String attachmentName = CybeUtils.getNameFromAttachmentHeader( response );
-
-                consumer.accept( mimeType, //
-                        attachmentName == null ? url : attachmentName,  //
-                        entity.getContent() );
-                EntityUtils.consume( entity );
-
-            }else{
-                if( errorHandler != null ) errorHandler.handleError( url, response );
-            }
-
-        }finally{
-            post.releaseConnection();
-        }
-
+        consumer.accept( mimeType, //
+                attachmentName == null ? url : attachmentName,  //
+                entity.getContent() );
+        EntityUtils.consume( entity );
     }//end getResource
 
     /* *****************************************************************
