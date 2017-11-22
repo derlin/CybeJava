@@ -297,7 +297,10 @@ public class CybeParser {
                     if( name == null || name.startsWith( "http" ) ){
                         System.err.println( "Error getting folder: attachment name is null." );
                     }else{
-                        consumer.accept( mimeType, name, in );
+                        // remove date, since it changes every day either if the content is the same.
+                        String strippedName = name.replaceAll("-20[0-9]{6}.zip", ".zip");
+                        if(strippedName.isEmpty()) System.err.println("Trying to download a folder with an empty name: " + name);
+                        consumer.accept( mimeType, strippedName, in );
                     }
                 });
 
