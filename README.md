@@ -100,3 +100,4 @@ __viewing the current config__: the `dump` command will display the content of t
 * __help__: print a brief help message 
 * __man__: display the full documentation 
 * __dump__: display the content of the current local configuration 
+* __open__: open the course page in the default browser

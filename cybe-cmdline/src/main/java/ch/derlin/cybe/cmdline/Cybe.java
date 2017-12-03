@@ -17,8 +17,10 @@ import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.http.NameValuePair;
 
+import javax.sql.rowset.serial.SerialRef;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -249,6 +251,15 @@ public class Cybe implements AutoCloseable{
             System.out.println( GsonUtils.toJson( localConfig ).replaceAll( "\\\"|\\{|\\}|\\[|\\]|,", "" ) );
             return true;
         } );
+
+        connectionlessHandlers.put("open", p -> {
+            try {
+                java.awt.Desktop.getDesktop().browse(URI.create(localConfig.getCourseUrl()));
+            } catch (IOException e) {
+                System.err.println("Course URI is invalid...");
+            }
+            return true;
+        });
 
         connectionlessHandlers.put( "add-origin", args -> add( localConfig::addOrigin, args ) );  //
         connectionlessHandlers.put( "rm-origin", args -> remove( localConfig::removeOrigin, args ) );  //

@@ -73,5 +73,10 @@
         "name" : "dump",
         "args" : "",
         "descr": "display the content of the current local configuration"
+    },
+    {
+        "name" : "open",
+        "args" : "",
+        "descr": "open the course page in the default browser"
     }
 ]
