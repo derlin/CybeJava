@@ -387,7 +387,7 @@ public class Cybe implements AutoCloseable{
         config.setHomeUrl( CmdUtils.choice( in, "For which platform do you want to use Cybe ?",
                 supportedPlatforms, ( s ) -> CmdUtils.ChoiceMismatchAction.QUIT ) );
         config.setUsername( CmdUtils.prompt( in, "Your username: ", i -> true ) );
-        config.setPassword( CmdUtils.prompt( in, "Your password: ", i -> true ) );
+        config.setPassword( CmdUtils.promptPassword( in, "Your password: ", i -> true ) );
 
         return config.save();
     }//end initGlobal

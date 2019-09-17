@@ -1,5 +1,6 @@
 package ch.derlin.cybe.cmdline;
 
+import java.io.Console;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
@@ -30,6 +31,20 @@ public class CmdUtils{
         do{
             System.out.print( message );
             answer = in.nextLine();
+        }while( !validator.test( answer ) );
+
+        return answer;
+    }//end prompt
+
+    public static String promptPassword( Scanner in, String message, Predicate<String> validator ){
+        // c might be null when running inside the IDE...
+        Console c = System.console();
+        if( c == null ) return prompt( in, message, validator );
+
+        String answer;
+        do{
+            System.out.print( message );
+            answer = new String( c.readPassword() );
         }while( !validator.test( answer ) );
 
         return answer;
