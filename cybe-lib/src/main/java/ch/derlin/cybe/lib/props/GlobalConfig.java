@@ -6,16 +6,12 @@ import ch.derlin.cybe.lib.gson.GsonUtils;
 import ch.derlin.cybe.lib.network.AuthContainer;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author: Lucy Linder
  * @date: 19.06.2014
  */
 public class GlobalConfig implements GsonContainable, AuthContainer{
-
-    public static final List<String> SUPPORTED_PLATFORMS = Arrays.asList( "cyberlearn.hes-so", "moodle.unil" );
 
     public static final String GLOBAL_CONFIG_FILEPATH = //
             System.getProperty( "user.home" ) + File.separator + ".cybeconf";
@@ -25,8 +21,8 @@ public class GlobalConfig implements GsonContainable, AuthContainer{
     @SerializedName( "password" )
     private String pass;
 
-    @SerializedName( "target platform" )
-    private String platform;
+    @SerializedName( "home_url" )
+    private String homeUrl;
 
 
     public GlobalConfig(){
@@ -34,10 +30,10 @@ public class GlobalConfig implements GsonContainable, AuthContainer{
     }//end constructor
 
 
-    public GlobalConfig( String platform, String username, String pass ){
+    public GlobalConfig(String homeUrl, String username, String pass ){
         this.username = username;
         this.pass = pass;
-        this.platform = platform;
+        this.homeUrl = homeUrl;
     }
 
 
@@ -81,13 +77,13 @@ public class GlobalConfig implements GsonContainable, AuthContainer{
     }
 
 
-    public String getPlatform(){
-        return platform;
+    public String getHomeUrl(){
+        return homeUrl;
     }
 
 
-    public void setPlatform( String platform ){
-        this.platform = platform;
+    public void setHomeUrl(String platform ){
+        this.homeUrl = platform;
     }
 
     /* *****************************************************************

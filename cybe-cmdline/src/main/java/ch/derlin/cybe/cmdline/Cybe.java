@@ -5,8 +5,8 @@ import ch.derlin.cybe.cmdline.parsing.CliParser;
 import ch.derlin.cybe.cmdline.parsing.CliStringOption;
 import ch.derlin.cybe.lib.gson.GsonUtils;
 import ch.derlin.cybe.lib.network.Connector;
+import ch.derlin.cybe.lib.network.CybeConnector;
 import ch.derlin.cybe.lib.network.CybeParser;
-import ch.derlin.cybe.lib.network.MoodleConnector;
 import ch.derlin.cybe.lib.props.GlobalConfig;
 import ch.derlin.cybe.lib.props.LocalConfig;
 import ch.derlin.cybe.lib.utils.CybeUtils;
@@ -17,7 +17,6 @@ import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.http.NameValuePair;
 
-import javax.sql.rowset.serial.SerialRef;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -35,13 +34,14 @@ import static ch.derlin.cybe.lib.utils.SuperSimpleLogger.*;
  */
 public class Cybe implements AutoCloseable{
 
-    private static final String HOME_URL = "https://moodle.msengineering.ch";
-
     private static final int EXIT_STATUS_ERROR = 1, EXIT_STATUS_OK = 0;
     private static final String LOCAL_CONF_NAME = ".cybe";
     private static final int PULL_TIMEOUT_SEC = 15;  // max time to download one file
 
-    private static final List<String> supportedPlatforms = Arrays.asList( "cyberlearn.hes-so", "moodle.unil" );
+    private static final List<String> supportedPlatforms = Arrays.asList(
+            "https://cyberlearn.hes-so.ch",
+            "https://moodle.msengineering.ch");
+
     private static final List<String> defaultCtypes = Arrays.asList( "pdf", "text/plain", "zip", "doc" );
 
     private static Scanner in = new Scanner( System.in );
@@ -384,8 +384,8 @@ public class Cybe implements AutoCloseable{
     private static boolean initGlobal( List<String> args ){
         GlobalConfig config = new GlobalConfig();
 
-        config.setPlatform( CmdUtils.choice( in, "For which platform do you want to use Cybe ?", supportedPlatforms,
-                ( s ) -> CmdUtils.ChoiceMismatchAction.QUIT ) );
+        config.setHomeUrl( CmdUtils.choice( in, "For which platform do you want to use Cybe ?",
+                supportedPlatforms, ( s ) -> CmdUtils.ChoiceMismatchAction.QUIT ) );
         config.setUsername( CmdUtils.prompt( in, "Your username: ", i -> true ) );
         config.setPassword( CmdUtils.prompt( in, "Your password: ", i -> true ) );
 
@@ -412,6 +412,10 @@ public class Cybe implements AutoCloseable{
 
             // get the list of courses
             if( courses == null ) courses = parser.getListOfCourses();
+            if( courses == null || courses.size() == 0 ){
+                System.out.println( "I couldn't find any class on this platform" );
+                return true;
+            }
             // create the config file
             localConfig = new LocalConfig( getLocalConfigFilePath() );
 
@@ -630,8 +634,8 @@ public class Cybe implements AutoCloseable{
                     "password", 1 );
         }
 
-        if( globalConfig.getPlatform() == null ){
-            System.out.println( "The platform was not specified." );
+        if( globalConfig.getHomeUrl() == null ){
+            System.out.println( "The platform URL was not specified." );
 
             String choice = CmdUtils.choice( in, "Which platform do you use ?", supportedPlatforms, ( s ) -> {
                 if( CmdUtils.isQuitInput( s ) ) printUsageAndQuit( "Quitting.", 0 );
@@ -639,15 +643,13 @@ public class Cybe implements AutoCloseable{
                 return CmdUtils.ChoiceMismatchAction.IGNORE;
             } );
 
-            globalConfig.setPlatform( choice );
+            globalConfig.setHomeUrl( choice );
             globalConfig.save();
         }
 
-        String platform = globalConfig.getPlatform();
-
         try{
             // TODO
-            connector = new MoodleConnector(HOME_URL);
+            connector = new CybeConnector( globalConfig.getHomeUrl() );
             parser = new CybeParser( connector, logger );
             connector.connect( globalConfig );
         }catch( Exception e ){

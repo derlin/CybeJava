@@ -400,6 +400,7 @@ public abstract class Connector implements Closeable{
 
     /* restore cookies from tmp file, if any */
     protected boolean checkForViableCookies() throws IOException{
+        // System.out.println( "cookie tmp path: " + getCookieTmpPath() );
         File file = new File( getCookieTmpPath() );
         return file.exists() && file.length() > 0 && restoreCookies( file.getAbsolutePath() );
     }//end checkForViableCookies
